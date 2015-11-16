@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>text-adventure</title>
+<style>
+pre {
+  font-size: 22px;
+  line-height: 22px;
+  letter-spacing: 4px;
+}
+</style>
+<pre>(Use arrow keys)</pre>
+<pre id=map></pre>
+<pre id=log></pre>
+
+<script>
+//  ☺☻♥♦♣♠•◘○◙♂♀♪♫☼
+// ►◄↕‼¶§▬↨↑↓→←∟↔▲▼
+//  !"#$%&'()*+,-./
+// 0123456789:;<=>?
+// @ABCDEFGHIJKLMNO
+// PQRSTUVWXYZ[\]^_
+// `abcdefghijklmno
+// pqrstuvwxyz{|}~⌂
+// ÇüéâäàåçêëèïîìÄÅ
+// ÉæÆôöòûùÿÖÜ¢£¥₧ƒ
+// áíóúñÑªº¿⌐¬½¼¡«»
+// ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐
+// └┴┬├─┼╞╟╚╔╩╦╠═╬╧
+// ╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀
+// αßΓπΣσµτΦΘΩδ∞φε∩
+// ≡±≥≤⌠⌡÷≈° ·√ⁿ²■
+
+var mapElement = document.getElementById('map')
+var logElement = document.getElementById('log')
+
+var hero = {x: 1, y: 1, symbol: '@'}
+
+var map = [
+"          ",
+"          ",
+"          ",
+"    ~~~~  ",
+"      ~~  ",
+"   ~~~~   ",
+"          ",
+"   ┌───┐  ",
+"   │   │  ",
+"   └ ──┘  ",
+"          ",
+]
+
+var objects = [
+  {x: 5, y: 4, name: 'Fire dragon', symbol: 'D', color: 'red'},
+  {x: 6, y: 8, name: 'Goblin', symbol: 'G', color: 'green'},
+]
+
+function interact (object){
+  log("You defeated " + object.name)
+  object.hidden = true
+  hero.x = object.x
+  hero.y = object.y
+}
+
+function move (x, y){
+  if (map[y] && map[y][x] === ' '){
+    var objectFound = false
+    for (var i = 0; i < objects.length; i++) {
+      var object = objects[i]
+      if (x === object.x && y === object.y && !object.hidden){
+        objectFound = true
+        interact(object)
+      }
+    }
+
+    if (!objectFound) {
+      hero.x = x
+      hero.y = y
+    }
+  }
+}
+
+function makeFrame(){
+  var frame = map.slice()
+  for (var i = 0; i < frame.length; i++)
+    frame[i] = frame[i].split('')
+  return frame
+}
+
+function displayFrame(frame){
+  for (var i = 0; i < frame.length; i++)
+    frame[i] = frame[i].join('')
+
+  var text = frame.join('<br>')
+
+  text = text.replace(/~/g, '<span style="color:blue">~</span>')
+
+  mapElement.innerHTML = text
+}
+
+function log(text){
+  logElement.innerHTML += text + "<br>"
+}
+
+function turn(key){
+  if (key === 38)
+    move(hero.x, hero.y - 1)
+
+  if (key === 40)
+    move(hero.x, hero.y + 1)
+
+  if (key === 37)
+    move(hero.x - 1, hero.y)
+
+  if (key === 39)
+    move(hero.x + 1, hero.y)
+
+  var frame = makeFrame()
+
+  frame[hero.y][hero.x] = hero.symbol
+
+  for (var i = 0; i < objects.length; i++) {
+    var object = objects[i]
+    if (!object.hidden)
+      frame[object.y][object.x] = '<span style="color:'+object.color+'">'+object.symbol+'</span>'
+  }
+
+  displayFrame(frame)
+}
+
+document.onkeydown = function (e) {
+  turn(e.keyCode)
+}
+
+turn()
+</script>
