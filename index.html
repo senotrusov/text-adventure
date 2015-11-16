@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>text-adventure</title>
+<title>A simplest possible text adventure game</title>
+
 <style>
 pre {
-  font-size: 22px;
-  line-height: 22px;
-  letter-spacing: 4px;
+  font-family: Menlo, 'DejaVu Sans Mono', 'Lucida Console', 'Liberation Mono', 'Courier New', monospace;
+  font-size: 18px;
+  line-height: 23px;
+  letter-spacing: 2px;
+
+  display: inline-block;
+  border: 2px solid lightgrey;
+  margin: 10px;
+  padding: 4px;
+
+  cursor: default;
 }
 </style>
-<pre>(Use arrow keys)</pre>
-<pre id=map></pre>
+
+<pre>(Нажимайте клавиши со стрелками ←→↑↓)</pre><br>
+<pre id=board></pre>
 <pre id=log></pre>
 
 <script>
@@ -31,12 +41,10 @@ pre {
 // αßΓπΣσµτΦΘΩδ∞φε∩
 // ≡±≥≤⌠⌡÷≈° ·√ⁿ²■
 
-var mapElement = document.getElementById('map')
-var logElement = document.getElementById('log')
 
-var hero = {x: 1, y: 1, symbol: '@'}
+var hero = {x: 0, y: 0, symbol: '@', color: 'fuchsia'}
 
-var map = [
+var board = [
 "          ",
 "          ",
 "          ",
@@ -44,93 +52,109 @@ var map = [
 "      ~~  ",
 "   ~~~~   ",
 "          ",
-"   ┌───┐  ",
-"   │   │  ",
-"   └ ──┘  ",
+"   ╔═══╗  ",
+"   ║   ║  ",
+"   ╚ ══╝  ",
 "          ",
 ]
 
 var objects = [
-  {x: 5, y: 4, name: 'Fire dragon', symbol: 'D', color: 'red'},
-  {x: 6, y: 8, name: 'Goblin', symbol: 'G', color: 'green'},
+  {x: 5, y: 4, symbol: '*', name: 'Золото', color: 'gold', type: 'item'},
+  {x: 4, y: 4, symbol: 'Д', name: 'Огненный дракон', color: 'red'},
+  {x: 6, y: 8, symbol: 'Г', name: 'Гоблин', color: 'yellowgreen'},
 ]
 
-function interact (object){
-  log("You defeated " + object.name)
-  object.hidden = true
-  hero.x = object.x
-  hero.y = object.y
-}
 
-function move (x, y){
-  if (map[y] && map[y][x] === ' '){
-    var objectFound = false
-    for (var i = 0; i < objects.length; i++) {
-      var object = objects[i]
-      if (x === object.x && y === object.y && !object.hidden){
-        objectFound = true
-        interact(object)
-      }
-    }
+drawFrame()
 
-    if (!objectFound) {
-      hero.x = x
-      hero.y = y
-    }
-  }
-}
+log('Вы видите озеро')
 
-function makeFrame(){
-  var frame = map.slice()
-  for (var i = 0; i < frame.length; i++)
-    frame[i] = frame[i].split('')
-  return frame
-}
-
-function displayFrame(frame){
-  for (var i = 0; i < frame.length; i++)
-    frame[i] = frame[i].join('')
-
-  var text = frame.join('<br>')
-
-  text = text.replace(/~/g, '<span style="color:blue">~</span>')
-
-  mapElement.innerHTML = text
-}
-
-function log(text){
-  logElement.innerHTML += text + "<br>"
-}
-
-function turn(key){
-  if (key === 38)
-    move(hero.x, hero.y - 1)
-
-  if (key === 40)
-    move(hero.x, hero.y + 1)
-
-  if (key === 37)
-    move(hero.x - 1, hero.y)
-
-  if (key === 39)
-    move(hero.x + 1, hero.y)
-
+function drawFrame () {
   var frame = makeFrame()
 
-  frame[hero.y][hero.x] = hero.symbol
-
-  for (var i = 0; i < objects.length; i++) {
-    var object = objects[i]
-    if (!object.hidden)
-      frame[object.y][object.x] = '<span style="color:'+object.color+'">'+object.symbol+'</span>'
+  function placeObject (object){
+    frame[object.y][object.x] = style(object, object.symbol)
   }
+
+  placeObject(hero)
+  objects.forEach(object => placeObject(object))
 
   displayFrame(frame)
 }
+
+function makeFrame () {
+  return board.map(line => line.split(''))
+}
+
+function displayFrame (frame) {
+  var text = frame.map(line => line.join('')).join('<br>')
+
+  text = text.replace(/~/g, '<span style="color:blue">~</span>')
+
+  document.getElementById('board').innerHTML = text
+}
+
+function style (object, text) {
+  return '<span style="color:'+object.color+'">' + text + '</span>'
+}
+
+function log (text) {
+  document.getElementById('log').innerHTML += text + "<br>"
+}
+
 
 document.onkeydown = function (e) {
   turn(e.keyCode)
 }
 
-turn()
+function turn (key) {
+  if (key === 38)
+    move(hero.x, hero.y - 1)
+
+  else if (key === 40)
+    move(hero.x, hero.y + 1)
+
+  else if (key === 37)
+    move(hero.x - 1, hero.y)
+
+  else if (key === 39)
+    move(hero.x + 1, hero.y)
+
+  drawFrame()
+}
+
+function move (x, y) {
+  if (boardAt(x, y) === ' '){
+    var found = objectsAt(x, y).reverse()
+
+    found.forEach(object => interact(object))
+
+    if(!found.length)
+      setHero(x, y)
+  }
+}
+
+function boardAt (x, y) {
+  return board[y] && board[y][x]
+}
+
+function objectsAt (x, y) {
+  return objects.filter(object => object.x === x && object.y === y)
+}
+
+function interact (object) {
+  if (object.type == 'item')
+    log("Вы нашли " + style(object, object.name))
+  else
+    log(style(object, object.name) + " побеждён")
+
+  objects = objects.filter(item => item !== object)
+
+  setHero(object.x, object.y)
+  }
+
+function setHero (x,y) {
+  hero.x = x
+  hero.y = y
+}
 </script>
