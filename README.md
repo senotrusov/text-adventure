@@ -1,7 +1,7 @@
 # text-adventure
 The simplest possible text adventure game
 
-# Copyright
+# License
 
    Copyright 2015 Stanislav Senotrusov
 
