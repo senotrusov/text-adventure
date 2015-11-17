@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A simplest possible text adventure game</title>
+<title>The simplest possible text adventure game</title>
 
 <style>
 pre {
@@ -19,11 +19,25 @@ pre {
 }
 </style>
 
-<pre>(Нажимайте клавиши со стрелками ←→↑↓)</pre><br>
+<pre id=head>(Нажимайте клавиши со стрелками ←→↑↓)</pre><br>
 <pre id=board></pre>
 <pre id=log></pre>
 
 <script>
+"use strict"
+window.onerror = function(message, url, line, column) {
+  var text = message + ' (' + url + ':' + line + ':' + column + ')<br>'
+
+  if (message === "SyntaxError: Unexpected token '>'")
+    text += "An arrow function expression support required, please use latest Firefox or Chrome"
+
+  document.getElementById('head').innerHTML = text
+}
+</script>
+
+<script>
+"use strict"
+
 //  ☺☻♥♦♣♠•◘○◙♂♀♪♫☼
 // ►◄↕‼¶§▬↨↑↓→←∟↔▲▼
 //  !"#$%&'()*+,-./
